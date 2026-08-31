@@ -49,3 +49,6 @@ Thumbs.db
 # ==========================
 *.sql.bak
 *.dump
+
+# Python build artifacts
+*.egg-info/
