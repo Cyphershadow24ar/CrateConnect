@@ -1,0 +1,39 @@
+[project]
+name = "food-rescue-backend"
+version = "0.1.0"
+description = "AI-Powered Food Waste Management Platform — Backend API"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn[standard]==0.34.3",
+    "sqlalchemy==2.0.41",
+    "alembic==1.15.2",
+    "psycopg[binary]==3.2.9",
+    "pydantic==2.11.4",
+    "pydantic-settings==2.9.1",
+    "pandas==2.2.3",
+    "python-multipart==0.0.20",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.5",
+    "pytest-asyncio==1.0.0",
+    "httpx==0.28.1",
+    "ruff==0.11.13",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
