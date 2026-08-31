@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import health
+from app.api.routes import health, category, business
 from app.core.config import settings
 from app.core.errors import (
     AppError,
@@ -43,7 +43,8 @@ def create_app() -> FastAPI:
 
     # ── Routes ────────────────────────────────────────────
     app.include_router(health.router, prefix="/api/v1")
-
+    app.include_router(category.router, prefix="/api/v1")
+    app.include_router(business.router, prefix="/api/v1")
     return app
 
 
