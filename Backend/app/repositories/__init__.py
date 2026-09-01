@@ -1,1 +1,2 @@
 # Repositories
+from app.repositories.inventory_repository import InventoryRepository

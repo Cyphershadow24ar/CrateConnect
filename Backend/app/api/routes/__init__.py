@@ -1,2 +1,2 @@
 # API routes
-from . import business, category, health
+from . import business, category, health, inventory
