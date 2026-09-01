@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+
 from app.api.deps import get_db
 from app.repositories.inventory_repository import InventoryRepository
 from app.schemas.inventory import (
@@ -38,6 +39,23 @@ def list_inventory(
         expiry_before=expiry_before,
     )
 
+@router.get("/expiring")
+def get_expiring_inventory(
+    threshold_days: int = 3,
+    db: Session = Depends(get_db),
+):
+    """Get inventory items expiring within the threshold."""
+    service = InventoryService(InventoryRepository(db))
+    return service.list_expiring(threshold_days)
+
+
+@router.get("/expired")
+def get_expired_inventory(
+    db: Session = Depends(get_db),
+):
+    """Get already expired inventory items."""
+    service = InventoryService(InventoryRepository(db))
+    return service.list_expired()
 
 @router.get("/{inventory_id}", response_model=InventoryResponse)
 def get_inventory(

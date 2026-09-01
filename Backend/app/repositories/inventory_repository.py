@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from uuid import UUID
 from sqlalchemy.orm import Session
 from app.models.inventory import InventoryItem
@@ -59,3 +59,30 @@ class InventoryRepository:
     def delete(self, inventory: InventoryItem):
         self.db.delete(inventory)
         self.db.commit()
+    
+    def get_expiring(self, threshold_days: int = 3):
+        """Return items expiring within threshold days."""
+        today = date.today()
+        limit = today + timedelta(days=threshold_days)
+
+        return (
+            self.db.query(InventoryItem)
+            .filter(
+                InventoryItem.expiry_date >= today,
+                InventoryItem.expiry_date <= limit,
+            )
+            .order_by(InventoryItem.expiry_date.asc())
+        .all()
+        )
+
+
+    def get_expired(self):
+        """Return already expired items."""
+        today = date.today()
+
+        return (
+            self.db.query(InventoryItem)
+            .filter(InventoryItem.expiry_date < today)
+            .order_by(InventoryItem.expiry_date.asc())
+            .all()
+        )

@@ -206,3 +206,35 @@ Verified through Swagger UI:
 - Negative-stock attempt returned `400 Bad Request`.
 - Inventory history correctly records transactions.
 Swagger testing completed successfully.
+
+Phase 5 — Expiry Tracking Engine
+
+Status: ✅ Complete
+
+Date: 2026-09-02
+
+Backend
+
+Added get_expiring() repository method.
+
+Added get_expired() repository method.
+
+Added service logic for:
+
+days_remaining
+
+EXPIRING_SOON status
+
+Added endpoints:
+
+GET /api/v1/inventory/expiring
+
+GET /api/v1/inventory/expired
+
+Testing
+
+Threshold-based expiry detection works.
+
+Already-expired endpoint returns correct results.
+
+Search, category, business, expiry-date and combined filters verified.

@@ -1,3 +1,6 @@
+from psycopg import _conninfo_attempts_async
+from psycopg import _conninfo_attempts_async
+from psycopg import _conninfo_attempts_async
 from datetime import date
 from uuid import UUID
 from fastapi import HTTPException
@@ -45,3 +48,49 @@ class InventoryService:
     def delete_inventory(self, inventory_id: UUID):
         inventory = self.get_inventory(inventory_id)
         self.repo.delete(inventory)
+
+    def list_expiring(self, threshold_days: int = 3):
+        """Return inventory items approaching expiry."""
+        items = self.repo.get_expiring(threshold_days)
+
+        result = []
+        today = date.today()
+
+        for item in items:
+            days_remaining = (item.expiry_date - today).days
+
+            result.append(
+                {
+                    "inventory_id": str(item.inventory_id),
+                    "product_name": item.product_name,
+                    "quantity": float(item.quantity),
+                    "unit": item.unit,
+                    "expiry_date": item.expiry_date,
+                    "days_remaining": days_remaining,
+                    "status": "EXPIRING_SOON",
+                }
+            )
+
+        return result
+
+
+    def list_expired(self):
+        """Return already expired inventory items."""
+        items = self.repo.get_expired()
+
+        result = []
+
+        for item in items:
+            result.append(
+                {
+                    "inventory_id": str(item.inventory_id),
+                    "product_name": item.product_name,
+                    "quantity": float(item.quantity),
+                    "unit": item.unit,
+                    "expiry_date": item.expiry_date,
+                    "days_remaining": -1,
+                    "status": "EXPIRED",
+                }
+            )
+
+        return result
