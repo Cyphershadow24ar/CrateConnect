@@ -1,2 +1,3 @@
 # Repositories
 from app.repositories.inventory_repository import InventoryRepository
+from .transaction_repository import TransactionRepository

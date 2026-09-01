@@ -99,3 +99,110 @@ Completed:
 - Demo business seeded
 - Default food categories seeded
 - Database verified
+
+## Phase 3 — Inventory CRUD + Search & Filter APIs
+
+**Status:** ✅ Complete
+
+**Date:** 2026-09-01
+
+### Backend
+
+Implemented the complete Inventory module following the existing layered architecture (Route → Service → Repository → Model).
+
+#### Created files
+
+* `app/models/inventory.py`
+* `app/schemas/inventory.py`
+* `app/repositories/inventory_repository.py`
+* `app/services/inventory_service.py`
+* `app/api/routes/inventory.py`
+
+#### Implemented APIs
+
+* `POST /api/v1/inventory`
+* `GET /api/v1/inventory`
+* `GET /api/v1/inventory/{inventory_id}`
+* `PUT /api/v1/inventory/{inventory_id}`
+* `DELETE /api/v1/inventory/{inventory_id}`
+
+#### Added Features
+
+* Product name search
+* Category filtering
+* Business filtering
+* Expiry-date filtering
+* Combined query filters
+
+#### Database Validation
+
+Verified:
+
+* UUID validation
+* Foreign key constraints
+* Unique barcode per business
+* Quantity validation
+
+#### API Testing
+
+Manually tested all endpoints through Swagger UI.
+
+Verified:
+
+* 200 OK
+* 201 Created
+* 204 No Content
+* 404 Not Found
+* 422 Validation Error
+* Search functionality
+* Filter combinations
+* Duplicate barcode constraint
+
+#### Version Control
+
+* Committed Inventory module.
+* Pushed changes to GitHub.
+* Created release tag `v0.1.0`.
+
+
+### Frontend
+
+Current status:
+
+* React + Vite + TypeScript project scaffold completed.
+* Tailwind CSS configuration in place.
+* Entry structure (`main.tsx`, `App.tsx`, `index.css`) verified.
+* Frontend feature implementation is deferred to later milestones after backend completion.
+
+## Phase 4 — Inventory Transaction Audit Trail
+
+Status: ✅ Complete
+
+Date: 2026-09-02
+
+### Backend
+
+- Created `InventoryTransaction` schema with validation.
+- Created `TransactionRepository` for immutable transaction storage.
+- Created `TransactionService` with inventory adjustment logic.
+- Added transaction API routes:
+  - `GET /api/v1/transactions`
+  - `POST /api/v1/transactions`
+  - `GET /api/v1/transactions/inventory/{inventory_id}`
+- Implemented automatic inventory updates for:
+  - SOLD
+  - DONATED
+  - EXPIRED
+- Added insufficient-stock validation.
+- Verified complete audit trail functionality.
+
+### Testing
+
+Verified through Swagger UI:
+
+- SOLD reduced Fresh Milk (25.500 → 20.500).
+- DONATED reduced Bread (15 → 12).
+- EXPIRED reduced Fresh Spinach (12 → 10).
+- Negative-stock attempt returned `400 Bad Request`.
+- Inventory history correctly records transactions.
+Swagger testing completed successfully.
