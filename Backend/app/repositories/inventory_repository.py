@@ -1,8 +1,11 @@
 from datetime import date, timedelta
 from uuid import UUID
-from sqlalchemy.orm import Session
-from app.models.inventory import InventoryItem
+
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.models.inventory import InventoryItem
+
 
 class InventoryRepository:
     def __init__(self, db: Session):
@@ -46,6 +49,15 @@ class InventoryRepository:
             .first()
         )
 
+    def get_by_barcode(self, barcode: str, business_id: UUID | None = None):
+        """Look up an inventory item by barcode within a specific business/tenant."""
+        query = self.db.query(InventoryItem).filter(InventoryItem.barcode == barcode)
+        if business_id:
+            item = query.filter(InventoryItem.business_id == business_id).first()
+            if item:
+                return item
+        return query.first()
+
     def create(self, inventory: InventoryItem):
         self.db.add(inventory)
         self.db.commit()
@@ -87,8 +99,6 @@ class InventoryRepository:
             .order_by(InventoryItem.expiry_date.asc())
             .all()
         )
-
-    from sqlalchemy.exc import IntegrityError
 
     def bulk_create(self, items: list[InventoryItem]):
         created = []

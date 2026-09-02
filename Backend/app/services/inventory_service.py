@@ -1,10 +1,9 @@
-from pydantic import functional_serializers
-import io
 from datetime import date
+import io
 from uuid import UUID
 
-import pandas as pd
 from fastapi import HTTPException, UploadFile
+import pandas as pd
 
 from app.models.inventory import InventoryItem
 from app.repositories.inventory_repository import InventoryRepository
@@ -33,6 +32,17 @@ class InventoryService:
         if not inventory:
             raise HTTPException(status_code=404, detail="Inventory item not found")
         return inventory
+
+    def get_by_barcode(self, barcode: str, business_id: UUID):
+        """Look up inventory item by barcode within a business. Raises 404 if not found."""
+        inventory = self.repo.get_by_barcode(barcode, business_id)
+        if not inventory:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No inventory item found with barcode '{barcode}'",
+            )
+        return inventory
+
 
     def create_inventory(self, data: InventoryCreate):
         inventory = InventoryItem(**data.model_dump())

@@ -2,10 +2,10 @@ from datetime import date
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, UploadFile, File
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_current_business_id, get_db
 from app.repositories.inventory_repository import InventoryRepository
 from app.schemas.inventory import (
     InventoryCreate,
@@ -64,6 +64,16 @@ def get_expired_inventory(
     """Get already expired inventory items."""
     service = InventoryService(InventoryRepository(db))
     return service.list_expired()
+
+@router.get("/barcode/{barcode}", response_model=InventoryResponse)
+def lookup_by_barcode(
+    barcode: str,
+    business_id: Annotated[UUID, Depends(get_current_business_id)],
+    service: Annotated[InventoryService, Depends(get_service)],
+):
+    """Look up an inventory item by barcode within the current business/tenant."""
+    return service.get_by_barcode(barcode, business_id)
+
 
 @router.get("/{inventory_id}", response_model=InventoryResponse)
 def get_inventory(

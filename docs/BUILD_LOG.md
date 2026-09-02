@@ -207,34 +207,76 @@ Verified through Swagger UI:
 - Inventory history correctly records transactions.
 Swagger testing completed successfully.
 
-Phase 5 — Expiry Tracking Engine
+---
 
-Status: ✅ Complete
+## Phase 5 — Expiry Tracking Engine
 
-Date: 2026-09-02
+**Status:** ✅ Complete
+**Date:** 2026-09-02
 
-Backend
+### Backend
+- Added `get_expiring(threshold_days)` repository method.
+- Added `get_expired()` repository method.
+- Added service logic for `days_remaining` calculation and `EXPIRING_SOON` / `EXPIRED` status derivation.
+- Added endpoints:
+  - `GET /api/v1/inventory/expiring` (with customizable threshold query parameter)
+  - `GET /api/v1/inventory/expired`
 
-Added get_expiring() repository method.
+### Testing
+- Threshold-based expiry detection verified.
+- Already-expired endpoint returns correct results.
+- Search, category, business, expiry-date and combined filters verified.
 
-Added get_expired() repository method.
+---
 
-Added service logic for:
+## Phase 6 — CSV Inventory Upload
 
-days_remaining
+**Status:** ✅ Complete
+**Date:** 2026-09-02
 
-EXPIRING_SOON status
+### Backend
+- Implemented `upload_csv` in `InventoryService` using pandas.
+- Implemented `POST /api/v1/inventory/upload-csv` endpoint.
+- Validates file type (`.csv`) and required columns.
+- Implemented `bulk_create` in `InventoryRepository` with duplicate handling (IntegrityError rollback per row).
+- Returns import summary with total rows, imported count, and skipped count.
 
-Added endpoints:
+---
 
-GET /api/v1/inventory/expiring
+## Phase 7 — Barcode/QR Rapid Stock Updates
 
-GET /api/v1/inventory/expired
+**Status:** ✅ Complete
+**Date:** 2026-09-02
 
-Testing
+### Backend
+- Added `get_by_barcode(barcode, business_id)` to `InventoryRepository` for tenant-scoped barcode lookup with fallback.
+- Added `get_by_barcode(barcode, business_id)` to `InventoryService` (returns 404 with clear message if not found).
+- Added `GET /api/v1/inventory/barcode/{barcode}` route registered before `/{inventory_id}` to prevent path conflicts.
+- Reuses existing `POST /api/v1/transactions` endpoint for rapid stock updates (`SOLD`, `ADDED`).
+- Created automated unit tests in `Backend/tests/test_barcode.py` testing lookup success, 404 handling, ADDED transaction, SOLD transaction, and insufficient stock validation.
 
-Threshold-based expiry detection works.
+### Frontend
+- Created `src/types/inventory.ts` with `InventoryItem`, `TransactionCreate`, and `TransactionResponse` interfaces.
+- Created `src/services/api.ts` with configured Axios client (`/api/v1`).
+- Created `src/services/inventoryService.ts` with typed `lookupByBarcode`, `createTransaction`, `getInventory`, and `listInventory`.
+- Created reusable `src/components/BarcodeScanner.tsx` using `@zxing/browser` (`BrowserMultiFormatReader`):
+  - Environment/rear camera preferred with camera switching selector.
+  - Animated targeting reticle with laser scan bar.
+  - Automatic stream cleanup on unmount and after successful scan.
+  - Manual barcode entry fallback for desktop/devices without cameras.
+  - Graceful handling of camera permission denial and missing device errors.
+- Created `src/pages/ScanPage.tsx`:
+  - Instant camera scanner modal trigger.
+  - Live item card with product name, current quantity, unit, barcode, and expiry date.
+  - Rapid action buttons: "Sell Stock (SOLD)" and "Add Stock (ADDED)".
+  - Quantity input with quick increment presets (+1, +5, +10).
+  - Validation for non-positive quantities and insufficient stock.
+  - Instant state refresh from server after transaction commit.
+  - Quick test buttons for all 9 demo barcodes (Fresh Milk, Bread, Fresh Spinach, Frozen Peas, Rice Bag, Orange Juice, Greek Yogurt, Apple Juice, Wheat Flour).
+- Updated `src/App.tsx` and `src/App.css` with responsive layout and design tokens.
 
-Already-expired endpoint returns correct results.
-
-Search, category, business, expiry-date and combined filters verified.
+### Verification
+- Backend pytest: 4 passed in 0.18s (`tests/test_barcode.py`).
+- Backend ruff: clean on modified repository, service, and routes.
+- Frontend oxlint: 0 warnings, 0 errors.
+- Frontend build: `tsc -b && vite build` succeeded in 300ms.
