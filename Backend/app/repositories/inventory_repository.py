@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from uuid import UUID
 from sqlalchemy.orm import Session
 from app.models.inventory import InventoryItem
+from sqlalchemy.exc import IntegrityError
 
 class InventoryRepository:
     def __init__(self, db: Session):
@@ -86,3 +87,20 @@ class InventoryRepository:
             .order_by(InventoryItem.expiry_date.asc())
             .all()
         )
+
+    from sqlalchemy.exc import IntegrityError
+
+    def bulk_create(self, items: list[InventoryItem]):
+        created = []
+
+        for item in items:
+            try:
+                self.db.add(item)
+                self.db.commit()
+                self.db.refresh(item)
+                created.append(item)
+            except IntegrityError:
+                self.db.rollback()
+                continue
+
+        return created

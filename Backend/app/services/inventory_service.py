@@ -1,13 +1,14 @@
-from psycopg import _conninfo_attempts_async
-from psycopg import _conninfo_attempts_async
-from psycopg import _conninfo_attempts_async
+from pydantic import functional_serializers
+import io
 from datetime import date
 from uuid import UUID
-from fastapi import HTTPException
+
+import pandas as pd
+from fastapi import HTTPException, UploadFile
+
 from app.models.inventory import InventoryItem
 from app.repositories.inventory_repository import InventoryRepository
 from app.schemas.inventory import InventoryCreate, InventoryUpdate
-
 
 class InventoryService:
     def __init__(self, repo: InventoryRepository):
@@ -94,3 +95,67 @@ class InventoryService:
             )
 
         return result
+
+    async def upload_csv(self, file: UploadFile):
+        """Validate uploaded CSV before importing."""
+
+        if not file.filename or not file.filename.lower().endswith(".csv"):
+            raise HTTPException(
+            status_code=400,
+            detail="Only CSV files are allowed."
+        )
+
+        contents = await file.read()
+
+        try:
+            df = pd.read_csv(io.BytesIO(contents))
+        except Exception:
+            raise HTTPException(
+            status_code=400,
+            detail="Invalid CSV file."
+        )
+
+        required_columns = {
+            "business_id",
+            "category_id",
+            "product_name",
+            "barcode",
+            "quantity",
+            "unit",
+            "purchase_date",
+            "expiry_date",
+        }
+
+        missing = required_columns - set(df.columns)
+
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required columns: {', '.join(sorted(missing))}"
+            )
+
+        inventory_items = []
+
+        for _, row in df.iterrows():
+            inventory_items.append(
+                InventoryItem(
+                    business_id=row["business_id"],
+                    category_id=row["category_id"],
+                    product_name=row["product_name"],
+                    barcode=str(row["barcode"]),
+                    quantity=row["quantity"],
+                    unit=row["unit"],
+                    purchase_date=pd.to_datetime(row["purchase_date"]).date(),
+                    expiry_date=pd.to_datetime(row["expiry_date"]).date(),
+                )
+            )
+
+        created_items = self.repo.bulk_create(inventory_items)
+
+        return {
+            "filename": file.filename,
+            "rows_found": len(df),
+            "rows_imported": len(created_items),
+            "rows_skipped": len(df) - len(created_items),
+            "message": "CSV import completed.",
+        }

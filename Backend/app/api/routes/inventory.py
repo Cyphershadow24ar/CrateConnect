@@ -2,7 +2,7 @@ from datetime import date
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
@@ -38,6 +38,14 @@ def list_inventory(
         business_id=business_id,
         expiry_before=expiry_before,
     )
+
+@router.post("/upload-csv", status_code=201)
+async def upload_inventory_csv(
+    file: UploadFile = File(...),
+    service: InventoryService = Depends(get_service),
+):
+    """Upload inventory items from a CSV file."""
+    return await service.upload_csv(file)
 
 @router.get("/expiring")
 def get_expiring_inventory(
