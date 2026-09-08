@@ -12,6 +12,7 @@ from app.api.routes import (
     business,
     inventory,
     transaction,
+    pos,
 )
 from app.core.config import settings
 from app.core.errors import (
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(business.router, prefix="/api/v1")
     app.include_router(inventory.router, prefix="/api/v1")
     app.include_router(transaction.router, prefix="/api/v1")
+    app.include_router(pos.router, prefix="/api/v1")
     return app
 
 
